@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>我喜欢你</title>
-    <!-- 引入 Vue 3 和 Masonry 库 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
     <style>
@@ -15,7 +14,6 @@
         }
 
         body {
-            /* 使用指定的背景图：完美覆盖 + 模糊滤镜 */
             background-image: url('https://file.shiorko.dpdns.org/file/bj.png');
             background-size: cover;
             background-attachment: fixed;
@@ -26,7 +24,6 @@
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
         
-        /* 添加一层半透明磨砂玻璃效果的遮罩，让文字更清晰，同时透出背景 */
         body::before {
             content: '';
             position: fixed;
@@ -40,7 +37,6 @@
             pointer-events: none;
         }
 
-        /* 所有内容层级在磨砂层之上 */
         .app-container {
             position: relative;
             z-index: 2;
@@ -48,7 +44,6 @@
             margin: 0 auto;
         }
 
-        /* 头部区域：酷炫标题 + 简洁描述 */
         .header {
             text-align: center;
             margin-bottom: 50px;
@@ -76,11 +71,11 @@
             background: rgba(255,255,255,0.1);
         }
 
-        /* 瀑布流网格容器 */
         .grid {
             margin: 0 auto;
         }
-        /* 每个图片卡片 */
+
+        /* 卡片样式 */
         .grid-item {
             width: 280px;
             margin-bottom: 25px;
@@ -92,22 +87,53 @@
             transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
             cursor: pointer;
             border: 1px solid rgba(255,255,255,0.2);
+            will-change: transform;
         }
+
+        /* 非聚焦卡片轻微缩小 + 变淡 */
+        .grid-item:not(.focused) {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+
+        /* 聚焦卡片（整行）放大突出 */
+        .grid-item.focused {
+            transform: scale(1.04);
+            background: rgba(55, 55, 75, 0.95);
+            box-shadow: 0 30px 45px -10px black;
+            border-color: rgba(255,215,120, 0.9);
+            z-index: 10;
+            position: relative;
+        }
+
+        /* 鼠标悬浮特效：覆盖聚焦样式 */
         .grid-item:hover {
-            transform: translateY(-8px);
-            background: rgba(40, 40, 55, 0.8);
-            box-shadow: 0 25px 40px -15px black;
-            border-color: rgba(255,215,120,0.6);
+            transform: scale(1.07) !important;
+            background: rgba(80, 80, 110, 0.98) !important;
+            border-color: #ffd966 !important;
+            box-shadow: 0 40px 60px -15px black !important;
+            z-index: 20;
+            transition: all 0.25s ease-out;
         }
-        /* 图片本身 */
+
+        /* 关键修改：图片预览区固定为正方形（宽高相等） */
+        .grid-item .img-square {
+            width: 100%;
+            aspect-ratio: 1 / 1;   /* 强制 1:1 正方形 */
+            overflow: hidden;
+            background: #1a1a2a;
+        }
         .grid-item img {
             width: 100%;
+            height: 100%;
             display: block;
+            object-fit: cover;      /* 填满正方形，可能裁剪边沿 */
             transition: transform 0.4s ease;
         }
         .grid-item:hover img {
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
+
         /* 图片描述文字 */
         .img-caption {
             padding: 12px 16px 16px;
@@ -125,7 +151,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* 模态框 (全屏预览图) */
+        /* 全屏模态框：原始比例显示 */
         .modal {
             display: none;
             position: fixed;
@@ -149,7 +175,7 @@
         .modal-content {
             max-width: 90vw;
             max-height: 90vh;
-            object-fit: contain;
+            object-fit: contain;   /* 保持原始比例，不裁剪 */
             border-radius: 16px;
             box-shadow: 0 0 50px rgba(0,0,0,0.7);
             animation: zoomIn 0.2s ease-out;
@@ -179,7 +205,6 @@
             background: rgba(0,0,0,0.8);
         }
 
-        /* 加载动画 */
         .loading {
             text-align: center;
             color: white;
@@ -192,27 +217,14 @@
         }
 
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         @keyframes zoomIn {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
         
-        /* 响应式微调 */
         @media (max-width: 650px) {
             body { padding: 15px 10px; }
             .header h1 { font-size: 2rem; }
@@ -222,7 +234,6 @@
             .grid-item { width: 100%; }
         }
         
-        /* 自定义滚动条 */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -240,17 +251,21 @@
 <div id="app">
     <div class="app-container">
         <div class="header">
-            <h1>好图都在这了</h1>
+            <h1> 好图都在这了 </h1>
             <p>点击图片放大</p>
         </div>
 
-        <!-- 瀑布流容器 -->
         <div ref="gridContainer" class="grid">
-            <div v-for="(img, idx) in imageList" :key="idx" class="grid-item" @click="openModal(img.url)">
-                <img :src="img.url" :alt="img.title" loading="lazy">
+            <div v-for="(img, idx) in imageList" :key="idx" 
+                 class="grid-item" 
+                 :class="{ focused: focusedIndices.has(idx) }"
+                 @click="openModal(img.url)">
+                <div class="img-square">
+                    <img :src="img.url" :alt="img.title" loading="lazy">
+                </div>
                 <div class="img-caption">
                     {{ img.title }}
-                    <span>{{ img.date || '✨ 珍藏瞬间' }}</span>
+                    <span>{{ img.date || '无描述' }}</span>
                 </div>
             </div>
         </div>
@@ -260,15 +275,15 @@
         </div>
     </div>
 
-    <!-- 全屏预览模态框 -->
+    <!-- 全屏预览：保持原始比例 -->
     <div id="imageModal" class="modal" @click.self="closeModal">
         <span class="close-modal" @click="closeModal">&times;</span>
-        <img class="modal-content" :src="currentImg" alt="Preview" id="previewImg">
+        <img class="modal-content" :src="currentImg" alt="Preview">
     </div>
 </div>
 
 <script>
-    const { createApp, ref, onMounted, nextTick } = Vue;
+    const { createApp, ref, onMounted, onBeforeUnmount, nextTick } = Vue;
 
     createApp({
         setup() {
@@ -276,35 +291,55 @@
             const loading = ref(true);
             const gridContainer = ref(null);
             const currentImg = ref('');
+            const focusedIndices = ref(new Set());
             let msnry = null;
+            let ticking = false;
+            let scrollListener = null;
 
             // 这里是图片数据源，你可以随意增删改图片 + 描述！
             // 👇 替换这里的图片链接 (url) 和 标题 (title) 来展示你自己的作品集
             //  { url: './pic/', title: '', date: '' },
+//----------------------------------------------------------------------------------------------------------------------//            
             const mockImages = [
                 { url: './pic/1.jpg', title: 'AI刚跑出来的', date: '26/4/25' },
                 { url: './pic/ctl.png', title: 'AI刚跑出来的', date: '26/4/25' },
                 { url: './pic/3.png', title: '效果最好的一个', date: '26/4/25' },
                 { url: './pic/4.png', title: '无火星文版', date: '26/4/25' },
                 
+//----------------------------------------------------------------------------------------------------------------------//
             ];
 
-            // 打开预览
-            const openModal = (url) => {
-                currentImg.value = url;
-                const modal = document.getElementById('imageModal');
-                modal.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            };
-            // 关闭预览
-            const closeModal = () => {
-                const modal = document.getElementById('imageModal');
-                modal.classList.remove('show');
-                document.body.style.overflow = '';
-                currentImg.value = '';
+            // 滚动时判定当前行（基于卡片中心垂直距离）
+            const updateFocus = () => {
+                if (!gridContainer.value) return;
+                const items = gridContainer.value.querySelectorAll('.grid-item');
+                if (items.length === 0) return;
+                const viewportCenter = window.innerHeight / 2;
+                let totalHeight = 0;
+                items.forEach(item => totalHeight += item.offsetHeight);
+                const avgHeight = totalHeight / items.length;
+                const threshold = avgHeight * 0.7;
+                const newFocusedIndices = new Set();
+                items.forEach((item, idx) => {
+                    const rect = item.getBoundingClientRect();
+                    const itemCenter = rect.top + rect.height / 2;
+                    if (Math.abs(itemCenter - viewportCenter) < threshold) {
+                        newFocusedIndices.add(idx);
+                    }
+                });
+                focusedIndices.value = newFocusedIndices;
             };
 
-            // 初始化瀑布流
+            const onScroll = () => {
+                if (!ticking) {
+                    requestAnimationFrame(() => {
+                        updateFocus();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            };
+
             const initMasonry = () => {
                 if (msnry) msnry.destroy();
                 if (gridContainer.value) {
@@ -316,29 +351,65 @@
                             fitWidth: true,
                             transitionDuration: '0.2s'
                         });
+                        updateFocus();
                     });
                 }
             };
 
-            onMounted(async () => {
-                // 模拟加载数据 (这里你可以替换成真实的API或者直接使用mockImages)
-                // 如果是真实项目，可以用 fetch 获取自己的图片列表，格式保持 { url, title, date }
+            const layoutMasonry = () => {
+                if (msnry) {
+                    msnry.layout();
+                    updateFocus();
+                }
+            };
+
+            const openModal = (url) => {
+                currentImg.value = url;
+                const modal = document.getElementById('imageModal');
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            };
+
+            const closeModal = () => {
+                const modal = document.getElementById('imageModal');
+                modal.classList.remove('show');
+                document.body.style.overflow = '';
+                currentImg.value = '';
+            };
+
+            onMounted(() => {
                 setTimeout(() => {
                     imageList.value = mockImages;
                     loading.value = false;
                     initMasonry();
-                    // 监听图片加载完成，重新布局
+
+                    // 图片加载完成后刷新布局
                     const images = document.querySelectorAll('.grid-item img');
                     let loadedCount = 0;
+                    const onImageLoad = () => {
+                        loadedCount++;
+                        if (loadedCount === images.length) {
+                            layoutMasonry();
+                        }
+                    };
                     images.forEach(img => {
-                        if (img.complete) loadedCount++;
-                        else img.addEventListener('load', () => {
-                            loadedCount++;
-                            if (loadedCount === images.length && msnry) msnry.layout();
-                        });
+                        if (img.complete) onImageLoad();
+                        else img.addEventListener('load', onImageLoad);
                     });
-                    if (loadedCount === images.length && msnry) msnry.layout();
+
+                    scrollListener = onScroll;
+                    window.addEventListener('scroll', scrollListener);
+                    window.addEventListener('resize', () => {
+                        if (msnry) msnry.layout();
+                        updateFocus();
+                    });
+                    updateFocus();
                 }, 300);
+            });
+
+            onBeforeUnmount(() => {
+                if (scrollListener) window.removeEventListener('scroll', scrollListener);
+                if (msnry) msnry.destroy();
             });
 
             return {
@@ -346,6 +417,7 @@
                 loading,
                 gridContainer,
                 currentImg,
+                focusedIndices,
                 openModal,
                 closeModal
             };
